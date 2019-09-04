@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup as bs
 from fake_useragent import UserAgent
+import re
 
 
 
@@ -24,33 +25,46 @@ def get_url_pages(start_url, headers):
 
 
 
-def get_hrefs(start_url, headers):
+def get_hrefs(start_url, headers, all_proxyes):
     all_hrefs = []
     url = start_url
     i = 0
     while True:
-        session = requests.Session()
-        session.proxies = proxies
-        request = session.get(url, headers=headers)
-        status_code = request.status_code
-        if status_code == 200:
-            soup = bs(request.content, 'lxml')
-            divs = soup.find_all('li', attrs={'class': 'OffersSerpItem OffersSerpItem_view_desktop OffersSerpItem_format_full OffersSerp__list-item OffersSerp__list-item_type_offer'})
-            hrefs = []
-            for div in divs:
-                href = div.find('a', attrs={'class': 'Link Link_js_inited Link_size_m Link_theme_islands SerpItemLink OffersSerpItem__link'})['href']
-                hrefs.append({
-                    'href': href
-                })
-            all_hrefs += hrefs
-            if divs:
-                url = f'{start_url}?page={i+1}'
-            else:
-                break
-        else:
-            print(f'Возникла ошибка {status_code}')
-        i += 1
+        proxy = all_proxyes[i]
+        try:
+            session = requests.Session()
+            session.proxies = proxy
+            request = session.get(url, headers=headers)
+        except requests.exceptions.RequestException:
+            request = False
+        if request:
+            response_url = request.url
+            match = re.fullmatch('.+captcha.+', response_url)
 
+            if match:
+                print(f'Прокси с параметрами {proxy} заблокирован.')
+            else:
+                status_code = request.status_code
+                if status_code == 200:
+                    soup = bs(request.content, 'lxml')
+                    divs = soup.find_all('li', attrs={'class': 'OffersSerpItem OffersSerpItem_view_desktop OffersSerpItem_format_full OffersSerp__list-item OffersSerp__list-item_type_offer'})
+                    if divs:
+                        hrefs = []
+                        for div in divs:
+                            href = div.find('a', attrs={'class': 'Link Link_js_inited Link_size_m Link_theme_islands SerpItemLink OffersSerpItem__link'})['href']
+                            hrefs.append({
+                                'href': href
+                            })
+                        all_hrefs += hrefs
+                        url = f'{start_url}?page={i+1}'
+                    else:
+                        break
+                else:
+                    print(f'Возникла ошибка {status_code}')
+        else:
+            print(f'Соединение с прокси {proxy} невозможно')
+        i += 1
+    return all_hrefs
 
 proxies = {'http': '144.217.163.138:8080'}
 
@@ -58,11 +72,13 @@ def get_all_hrefs(url, headers, proxies):
     session = requests.Session()
     session.proxies = proxies
     request = session.get(url, headers=headers)
+    response_url = request.url
     s = request.status_code
     soup = bs(request.content, 'lxml')
     divs = soup.find_all('li', attrs={'class': 'OffersSerpItem OffersSerpItem_view_desktop OffersSerpItem_format_full OffersSerp__list-item OffersSerp__list-item_type_offer'})
 
     print(s, divs)
+    print(response_url)
 
 # def get_cityes_yandex():
 
