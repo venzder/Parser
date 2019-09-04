@@ -4,25 +4,9 @@ from fake_useragent import UserAgent
 import re
 
 
-
 headers = {'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,'
                      'application/signed-exchange;v=b3',
            'user-agent': UserAgent().random}
-
-
-def get_url_pages(start_url, headers):
-    lst = []
-    while True:
-        try:
-            session = requests.Session()
-            request = session.get(url, headers=headers)
-            soup = bs(request.content, 'lxml')
-            url = f"https://realty.yandex.ru{soup.find('a', attrs={'class': 'Pager__radio-link'})['href']}"
-            lst.append(url)
-        except:
-            break
-    return lst
-
 
 
 def get_hrefs(start_url, headers, all_proxyes):
@@ -40,7 +24,6 @@ def get_hrefs(start_url, headers, all_proxyes):
         if request:
             response_url = request.url
             match = re.fullmatch('.+captcha.+', response_url)
-
             if match:
                 print(f'Прокси с параметрами {proxy} заблокирован.')
             else:
@@ -80,19 +63,6 @@ def get_all_hrefs(url, headers, proxies):
     print(s, divs)
     print(response_url)
 
-# def get_cityes_yandex():
-
-
-
-# def get_yandex_url(city, region, metro):
-#
-#
-# def yandex_parser(yandex_url, headers):
-#     session = requests.Session()
-#     request = session.get(yandex_url, headers=headers)
-#     if request.status_code == 200:
-#         soup = bs(request.content, 'html.parser')
-#         divs = soup.find_all('div', attrs={})
 
 
 
