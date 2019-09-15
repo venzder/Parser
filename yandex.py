@@ -9,12 +9,12 @@ headers = {'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,imag
            'user-agent': UserAgent().random}
 
 
-def get_hrefs(start_url, headers, all_proxyes):
+def get_hrefs(start_url, headers, all_proxies):
     all_hrefs = []
     url = start_url
     i = 0
     while True:
-        proxy = all_proxyes[i]
+        proxy = all_proxies[i]
         try:
             session = requests.Session()
             session.proxies = proxy
